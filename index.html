@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="et">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Kodu</title>
+<meta name="theme-color" content="#f3f4f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14171a" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Kodu">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+/* One-column phone app: sticky title bar, scrolling list, floating + button, bottom tab bar. */
+:root{
+  --bg:#f3f4f1; --card:#ffffff; --fg:#1b1f1d; --muted:#6b736e; --line:#dfe3de; --soft:#e9ece8;
+  --urgent:#d2452c; --urgent-bg:#fbe6e1; --soon:#b7791f; --soon-bg:#fbefd9; --event:#2563a8; --event-bg:#e1ecf8;
+  --accent:#1f6f52; --accent-fg:#fff; --danger:#c0392b;
+  --r:14px; --tab-h:62px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#14171a; --card:#1e2226; --fg:#e8ebe9; --muted:#97a09b; --line:#2c3237; --soft:#252a2f;
+  --urgent:#ff7a5c; --urgent-bg:#3a201a; --soon:#f0b350; --soon-bg:#382c17; --event:#6fa8ef; --event-bg:#182a3f;
+  --accent:#5cc79a; --accent-fg:#0d1a14; --danger:#ff6b5b; color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;font-size:16px;-webkit-tap-highlight-color:transparent}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+[hidden]{display:none!important}
+.app{min-height:100%;padding-top:env(safe-area-inset-top);padding-bottom:calc(var(--tab-h) + env(safe-area-inset-bottom) + 90px)}
+.top{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(env(safe-area-inset-top) + 10px) max(16px,env(safe-area-inset-right)) 8px max(16px,env(safe-area-inset-left));margin-top:calc(-1 * env(safe-area-inset-top));display:flex;align-items:center;justify-content:space-between;gap:10px}
+.top h1{margin:0;font-size:28px;font-weight:750;letter-spacing:-.02em}
+.top .sub{font-size:13px;color:var(--muted)}
+main{padding:0 max(16px,env(safe-area-inset-right)) 0 max(16px,env(safe-area-inset-left));max-width:640px;margin:0 auto;display:grid;gap:12px}
+.top-inner{max-width:640px;margin:0 auto;width:100%;display:flex;justify-content:space-between;align-items:center}
+ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.item{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px}
+.item.u{box-shadow:inset 4px 0 0 var(--urgent)} .item.s{box-shadow:inset 4px 0 0 var(--soon)}
+.check{flex:none;width:30px;height:30px;border-radius:50%;border:2px solid var(--muted);background:transparent;display:grid;place-items:center;padding:0;color:var(--accent-fg)}
+.check svg{width:16px;height:16px;opacity:0}
+.item.done .check{background:var(--accent);border-color:var(--accent)} .item.done .check svg{opacity:1}
+.ibody{flex:1;min-width:0;display:grid;gap:3px;padding-top:4px;border:0;background:none;text-align:left;padding-left:0;padding-right:0}
+.itxt{font-size:17px;line-height:1.35;overflow-wrap:anywhere}
+.item.done .itxt{text-decoration:line-through;color:var(--muted)}
+.inote{font-size:14px;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere}
+.meta{display:flex;flex-wrap:wrap;gap:2px 10px;font-size:12.5px;color:var(--muted)}
+.late{color:var(--urgent);font-weight:600} .today{color:var(--soon);font-weight:600}
+.empty{border:1px dashed var(--line);border-radius:var(--r);padding:26px 18px;text-align:center;color:var(--muted);line-height:1.5;background:var(--card)}
+.empty b{display:block;color:var(--fg);font-size:18px;margin-bottom:4px}
+details.done{border-top:1px solid var(--line);padding-top:10px}
+details.done summary{list-style:none;display:flex;justify-content:space-between;color:var(--muted);font-weight:600;font-size:15px;cursor:pointer;padding:4px 0}
+details.done summary::-webkit-details-marker{display:none}
+details.done summary::after{content:"Näita";color:var(--accent);font-weight:500;font-size:14px}
+details.done[open] summary::after{content:"Peida"}
+details.done ul{margin-top:8px}
+.ghost{background:transparent;border:1px solid var(--line);border-radius:10px;padding:8px 12px;color:var(--muted);font-weight:600;font-size:14px}
+.fab{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:calc(var(--tab-h) + env(safe-area-inset-bottom) + 16px);width:60px;height:60px;border-radius:50%;border:0;background:var(--accent);color:var(--accent-fg);font-size:32px;line-height:1;box-shadow:0 6px 20px rgba(0,0,0,.22);z-index:6}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:7;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom);padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);display:grid;grid-template-columns:repeat(4,1fr)}
+nav.tabs button{height:var(--tab-h);border:0;background:none;display:grid;place-items:center;align-content:center;gap:3px;font-size:11.5px;font-weight:600;color:var(--muted);position:relative}
+nav.tabs svg{width:24px;height:24px}
+nav.tabs button[aria-selected="true"]{color:var(--fg)}
+nav.tabs button[data-tab="urgent"][aria-selected="true"]{color:var(--urgent)}
+nav.tabs button[data-tab="soon"][aria-selected="true"]{color:var(--soon)}
+nav.tabs button[data-tab="events"][aria-selected="true"]{color:var(--event)}
+.badge{position:absolute;top:7px;left:calc(50% + 6px);min-width:18px;height:18px;border-radius:9px;padding:0 5px;font-size:11px;line-height:18px;color:#fff;background:var(--urgent)}
+.badge.s{background:var(--soon)} .badge.e{background:var(--event)}
+/* calendar */
+.cal{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:10px 10px 12px}
+.calhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.calhead b{font-size:16px;text-transform:capitalize}
+.calhead button{border:0;background:var(--soft);border-radius:10px;width:38px;height:34px;font-size:18px}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
+.grid .dow{font-size:11px;color:var(--muted);font-weight:600;padding:4px 0}
+.grid button{border:0;background:none;aspect-ratio:1;max-height:48px;border-radius:10px;font-size:15px;display:grid;place-items:center;align-content:center;gap:2px;font-variant-numeric:tabular-nums;padding:0}
+.grid button.out{color:var(--muted);opacity:.45}
+.grid button.today{font-weight:800;color:var(--event)}
+.grid button.sel{background:var(--event);color:#fff}
+.grid i{display:block;width:5px;height:5px;border-radius:50%;background:var(--event)}
+.grid button.sel i{background:#fff}
+.grid i.none{background:transparent}
+.dayhead{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:8px 2px 0}
+.ev{display:flex;gap:12px;align-items:stretch;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:10px 12px;text-align:left;width:100%}
+.evdate{flex:none;width:52px;border-radius:10px;background:var(--event-bg);color:var(--event);display:grid;place-items:center;align-content:center;padding:6px 0}
+.evdate b{font-size:20px;line-height:1} .evdate span{font-size:11px;font-weight:700;text-transform:uppercase}
+.evbody{flex:1;min-width:0;display:grid;gap:3px;align-content:center}
+.evtitle{font-size:17px;font-weight:600;overflow-wrap:anywhere}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{font-size:11.5px;padding:2px 8px;border-radius:999px;background:var(--event-bg);color:var(--event);font-weight:600}
+.ev.past{opacity:.6}
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--card);width:100%;max-width:640px;border-radius:20px 20px 0 0;max-height:92%;overflow:auto;padding:16px max(16px,env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));display:grid;gap:12px}
+.sheet h2{margin:0;font-size:20px}
+.shead{display:flex;justify-content:space-between;align-items:center}
+.x{border:0;background:var(--soft);width:34px;height:34px;border-radius:50%;font-size:20px;line-height:1}
+label.f{display:grid;gap:5px;font-size:13px;font-weight:600;color:var(--muted)}
+.inp{width:100%;font-size:17px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--fg)}
+textarea.inp{min-height:70px;resize:vertical}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:8px 13px;font-size:14px;font-weight:600}
+.seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.seg.u button[aria-pressed="true"][data-v="urgent"]{background:var(--urgent);border-color:var(--urgent);color:#fff}
+.seg.u button[aria-pressed="true"][data-v="soon"]{background:var(--soon);border-color:var(--soon);color:#fff}
+.btn{border:0;border-radius:12px;padding:14px;font-weight:700;font-size:16px;background:var(--accent);color:var(--accent-fg);width:100%}
+.btn.sec{background:var(--soft);color:var(--fg)}
+.btn.del{background:transparent;color:var(--danger);border:1px solid var(--line)}
+.btn:disabled{opacity:.5}
+.err{color:var(--danger);font-size:14px;line-height:1.4}
+.note{color:var(--muted);font-size:14px;line-height:1.5}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:grid;gap:10px}
+.card h3{margin:0;font-size:16px}
+.mem{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:15px}
+.mem small{color:var(--muted)}
+.login{max-width:420px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 40px) max(20px,env(safe-area-inset-right)) 40px max(20px,env(safe-area-inset-left));display:grid;gap:14px}
+.login h1{font-size:34px;margin:0 0 4px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tab-h) + env(safe-area-inset-bottom) + 90px);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;z-index:30;max-width:90%;text-align:center}
+.ver{text-align:center;color:var(--muted);font-size:12px}
+@media (prefers-reduced-motion:no-preference){.sheet{animation:up .22s ease-out}@keyframes up{from{transform:translateY(30px);opacity:.6}}}
+</style>
+</head>
+<body>
+
+<div id="loginView" class="login" hidden>
+  <h1>Kodu</h1>
+  <p class="note" id="loginIntro">Logi sisse, et näha ühist nimekirja.</p>
+  <label class="f" id="nameWrap" hidden>Sinu nimi<input class="inp" id="lName" autocomplete="given-name" placeholder="nt Tõnis"></label>
+  <label class="f">E-post<input class="inp" id="lEmail" type="email" autocomplete="email" inputmode="email"></label>
+  <label class="f">Parool<input class="inp" id="lPass" type="password" autocomplete="current-password" minlength="6"></label>
+  <p class="err" id="lErr" hidden></p>
+  <button class="btn" id="lGo">Logi sisse</button>
+  <button class="btn sec" id="lSwitch">Mul pole veel kontot</button>
+  <button class="ghost" id="lReset" style="justify-self:center">Unustasin parooli</button>
+</div>
+
+<div id="noAccess" class="login" hidden>
+  <h1>Oota natuke</h1>
+  <p class="note">Oled sisse logitud kui <b id="naEmail"></b>, aga sul pole veel ligipääsu. Palu, et teine lisaks sinu e-posti äpis <b>Seaded → Pereliikmed</b> alla. Seejärel ava äpp uuesti.</p>
+  <button class="btn sec" id="naRetry">Proovi uuesti</button>
+  <button class="ghost" id="naOut" style="justify-self:center">Logi välja</button>
+</div>
+
+<div id="appView" class="app" hidden>
+  <header class="top"><div class="top-inner"><div><h1 id="title">Kiireloomulised</h1><div class="sub" id="subtitle"></div></div></div></header>
+  <main id="main"></main>
+  <button class="fab" id="fab" aria-label="Lisa">+</button>
+  <nav class="tabs" role="tablist">
+    <button data-tab="urgent" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>Kiired<span class="badge" id="bU" hidden></span></button>
+    <button data-tab="soon" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Lähiajal<span class="badge s" id="bS" hidden></span></button>
+    <button data-tab="events" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Üritused<span class="badge e" id="bE" hidden></span></button>
+    <button data-tab="settings" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Seaded</button>
+  </nav>
+</div>
+
+<div id="splash" class="login"><p class="note">Laen…</p></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc, setDoc, getDoc, writeBatch, query, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+const APP_VERSION = 1;
+const firebaseConfig = {
+  apiKey: "AIzaSyCYOaPpltoeFCP6HYsTbCc_NBHJXVFaP08",
+  authDomain: "tasks-f2af3.firebaseapp.com",
+  projectId: "tasks-f2af3",
+  storageBucket: "tasks-f2af3.firebasestorage.app",
+  messagingSenderId: "523672937359",
+  appId: "1:523672937359:web:f5c917de6a515c7fa3a1fa"
+};
+// Web push key from Firebase console → Project settings → Cloud Messaging → Web Push certificates. Empty = notifications not set up yet.
+const VAPID_KEY = "";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const CHECK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
+const TITLES = { urgent: 'Kiireloomulised', soon: 'Vaja teha lähiajal', events: 'Üritused', settings: 'Seaded' };
+const REMINDERS = [[0,'Ürituse ajal'],[15,'15 min enne'],[60,'1 h enne'],[180,'3 h enne'],[1440,'1 päev enne'],[2880,'2 päeva enne'],[10080,'1 nädal enne']];
+const remLabel = m => (REMINDERS.find(r => r[0] === m) || [0, m + ' min enne'])[1];
+
+let tab = 'urgent', tasks = [], events = [], members = [], unsub = [], me = null;
+let calMonth = startOfMonth(new Date()), calSel = null;
+try { const t = localStorage.getItem('tab'); if (TITLES[t]) tab = t; } catch (e) {}
+
+/* ---------- dates ---------- */
+function pad(n) { return String(n).padStart(2, '0'); }
+function iso(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+function todayIso() { return iso(new Date()); }
+function startOfMonth(d) { return new Date(d.getFullYear(), d.getMonth(), 1); }
+function parseIso(s) { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); }
+function fmtDay(s, opts) { return parseIso(s).toLocaleDateString('et-EE', opts || { weekday: 'short', day: 'numeric', month: 'short' }); }
+function dueLabel(s) {
+  const t = todayIso(); if (s < t) return ['late', 'Hilinenud · ' + fmtDay(s, { day: 'numeric', month: 'short' })];
+  if (s === t) return ['today', 'Täna'];
+  const tm = new Date(); tm.setDate(tm.getDate() + 1); if (s === iso(tm)) return ['', 'Homme'];
+  return ['', fmtDay(s)];
+}
+function ago(ts) {
+  const ms = ts?.toMillis ? ts.toMillis() : ts; if (!ms) return '';
+  const m = Math.round((Date.now() - ms) / 60000); if (m < 1) return 'just praegu'; if (m < 60) return m + ' min tagasi';
+  const h = Math.round(m / 60); if (h < 24) return h + ' h tagasi'; const d = Math.round(h / 24); return d === 1 ? 'eile' : d + ' päeva tagasi';
+}
+function eventStart(e) { const d = parseIso(e.date); if (e.time) { const [h, m] = e.time.split(':').map(Number); d.setHours(h, m); } else d.setHours(9, 0); return d.getTime(); }
+function eventEndIso(e) { return e.endDate && e.endDate > e.date ? e.endDate : e.date; }
+
+/* ---------- auth ---------- */
+let signupMode = false;
+function showOnly(id) { for (const v of ['loginView', 'noAccess', 'appView', 'splash']) $(v).hidden = v !== id; }
+function setSignup(on) {
+  signupMode = on; $('nameWrap').hidden = !on; $('lGo').textContent = on ? 'Loo konto' : 'Logi sisse';
+  $('lSwitch').textContent = on ? 'Mul on juba konto' : 'Mul pole veel kontot'; $('lReset').hidden = on;
+  $('lPass').autocomplete = on ? 'new-password' : 'current-password'; $('lErr').hidden = true;
+}
+const AUTH_ERR = { 'auth/invalid-credential': 'Vale e-post või parool.', 'auth/wrong-password': 'Vale parool.', 'auth/user-not-found': 'Sellise e-postiga kontot pole.', 'auth/email-already-in-use': 'Selle e-postiga konto on juba olemas. Logi sisse.', 'auth/weak-password': 'Parool peab olema vähemalt 6 märki.', 'auth/invalid-email': 'E-posti aadress pole õige.', 'auth/too-many-requests': 'Liiga palju katseid. Oota paar minutit.', 'auth/network-request-failed': 'Internet puudub. Proovi uuesti.' };
+function authErr(e) { $('lErr').textContent = AUTH_ERR[e.code] || 'Ei õnnestunud (' + (e.code || e.message) + ').'; $('lErr').hidden = false; }
+$('lSwitch').onclick = () => setSignup(!signupMode);
+$('lGo').onclick = async () => {
+  const email = $('lEmail').value.trim(), pass = $('lPass').value, name = $('lName').value.trim();
+  if (signupMode && !name) { authErr({ message: 'Kirjuta oma nimi' }); $('lErr').textContent = 'Kirjuta oma nimi.'; return; }
+  $('lGo').disabled = true;
+  try {
+    if (signupMode) { const c = await createUserWithEmailAndPassword(auth, email, pass); await updateProfile(c.user, { displayName: name }); boot(c.user); }
+    else await signInWithEmailAndPassword(auth, email, pass);
+  } catch (e) { authErr(e); } finally { $('lGo').disabled = false; }
+};
+$('lReset').onclick = async () => {
+  const email = $('lEmail').value.trim(); if (!email) { $('lErr').textContent = 'Kirjuta enne e-post.'; $('lErr').hidden = false; return; }
+  try { await sendPasswordResetEmail(auth, email); $('lErr').textContent = 'Saatsin parooli muutmise lingi aadressile ' + email + '.'; $('lErr').hidden = false; } catch (e) { authErr(e); }
+};
+$('naOut').onclick = () => signOut(auth);
+$('naRetry').onclick = () => boot(auth.currentUser);
+
+onAuthStateChanged(auth, user => { if (user) boot(user); else { stop(); setSignup(false); showOnly('loginView'); } });
+
+function stop() { unsub.forEach(f => f()); unsub = []; }
+async function boot(user) {
+  stop(); me = user;
+  const name = () => me.displayName || me.email.split('@')[0];
+  me.nameOf = name;
+  // Membership check: a non-member's read is refused by the security rules.
+  try { await getDoc(doc(db, 'tasks', '_probe')); }
+  catch (e) { if (e.code === 'permission-denied') { $('naEmail').textContent = user.email; showOnly('noAccess'); return; } }
+  showOnly('appView');
+  const fail = e => { if (e.code === 'permission-denied') { $('naEmail').textContent = user.email; showOnly('noAccess'); } else toast('Ühendus katkes: ' + e.code); };
+  unsub.push(onSnapshot(collection(db, 'tasks'), s => { tasks = s.docs.map(d => ({ id: d.id, ...d.data() })); render(); }, fail));
+  unsub.push(onSnapshot(collection(db, 'events'), s => { events = s.docs.map(d => ({ id: d.id, ...d.data() })); render(); }, fail));
+  unsub.push(onSnapshot(collection(db, 'members'), s => { members = s.docs.map(d => ({ email: d.id, ...d.data() })); if (tab === 'settings') render(); }, () => {}));
+  render();
+}
+
+/* ---------- writes ---------- */
+async function guard(p, okMsg) { try { await p; if (okMsg) toast(okMsg); } catch (e) { toast(e.code === 'permission-denied' ? 'Sul pole selleks õigust.' : 'Salvestamine ebaõnnestus. Kontrolli internetti.'); } }
+const by = () => ({ name: me.nameOf(), uid: me.uid });
+
+/* ---------- render ---------- */
+function setTab(t) { tab = t; try { localStorage.setItem('tab', t); } catch (e) {} render(); window.scrollTo(0, 0); }
+document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => setTab(b.dataset.tab));
+$('fab').onclick = () => tab === 'events' ? eventSheet() : taskSheet(null, tab === 'soon' ? 'soon' : 'urgent');
+
+function render() {
+  if ($('appView').hidden) return;
+  document.querySelectorAll('nav.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === tab));
+  $('title').textContent = TITLES[tab];
+  const openU = tasks.filter(t => t.list === 'urgent' && !t.done).length, openS = tasks.filter(t => t.list === 'soon' && !t.done).length;
+  const upcoming = events.filter(e => eventEndIso(e) >= todayIso());
+  const next7 = upcoming.filter(e => e.date <= iso(new Date(Date.now() + 7 * 864e5))).length;
+  for (const [id, n] of [['bU', openU], ['bS', openS], ['bE', next7]]) { $(id).hidden = !n; $(id).textContent = n; }
+  $('fab').hidden = tab === 'settings';
+  if (tab === 'urgent' || tab === 'soon') renderTasks(tab);
+  else if (tab === 'events') renderEvents();
+  else renderSettings();
+}
+
+function renderTasks(list) {
+  const all = tasks.filter(t => t.list === list);
+  const open = all.filter(t => !t.done).sort((a, b) => (a.due || '9999') < (b.due || '9999') ? -1 : (a.due || '9999') > (b.due || '9999') ? 1 : (a.createdAt?.toMillis?.() || 0) - (b.createdAt?.toMillis?.() || 0));
+  const done = all.filter(t => t.done).sort((a, b) => (b.doneAt?.toMillis?.() || 0) - (a.doneAt?.toMillis?.() || 0));
+  $('subtitle').textContent = open.length ? open.length + (open.length === 1 ? ' asi teha' : ' asja teha') : 'Kõik tehtud';
+  const m = $('main'); m.innerHTML = '';
+  const ul = document.createElement('ul');
+  if (!open.length) ul.innerHTML = `<li class="empty"><b>${list === 'urgent' ? 'Midagi kiiret pole' : 'Nimekiri on tühi'}</b>Vajuta all paremal <b style="display:inline;font-size:inherit">+</b>, et lisada. Teine näeb seda kohe oma telefonis.</li>`;
+  for (const t of open) ul.append(taskRow(t));
+  m.append(ul);
+  if (done.length) {
+    const d = document.createElement('details'); d.className = 'done';
+    d.innerHTML = `<summary>Tehtud (${done.length})</summary>`;
+    const ud = document.createElement('ul'); for (const t of done) ud.append(taskRow(t)); d.append(ud);
+    const clr = document.createElement('button'); clr.className = 'ghost'; clr.style.marginTop = '10px'; clr.textContent = 'Kustuta tehtud';
+    let armed = false;
+    clr.onclick = () => {
+      if (!armed) { armed = true; clr.textContent = `Kustutan ${done.length} asja? Vajuta uuesti`; setTimeout(() => { armed = false; clr.textContent = 'Kustuta tehtud'; }, 4000); return; }
+      const b = writeBatch(db); done.forEach(t => b.delete(doc(db, 'tasks', t.id))); guard(b.commit(), 'Kustutatud');
+    };
+    d.append(clr); m.append(d);
+  }
+}
+function taskRow(t) {
+  const li = document.createElement('li'); li.className = 'item' + (t.done ? ' done' : t.list === 'urgent' ? ' u' : ' s');
+  const c = document.createElement('button'); c.className = 'check'; c.innerHTML = CHECK; c.setAttribute('aria-label', t.done ? 'Märgi tegemata' : 'Märgi tehtuks');
+  c.onclick = () => guard(updateDoc(doc(db, 'tasks', t.id), t.done ? { done: false, doneAt: null, doneBy: null } : { done: true, doneAt: serverTimestamp(), doneBy: by() }));
+  const b = document.createElement('button'); b.className = 'ibody'; b.onclick = () => taskSheet(t);
+  const meta = [];
+  if (t.due && !t.done) { const [cls, txt] = dueLabel(t.due); meta.push(`<span class="${cls}">${esc(txt)}</span>`); }
+  meta.push(t.done ? `${esc(t.doneBy?.name || '')} tegi ${ago(t.doneAt)}` : `${esc(t.createdBy?.name || '')} lisas ${ago(t.createdAt)}`);
+  b.innerHTML = `<span class="itxt">${esc(t.text)}</span>${t.note ? `<span class="inote">${esc(t.note)}</span>` : ''}<span class="meta">${meta.join('')}</span>`;
+  li.append(c, b); return li;
+}
+
+function renderEvents() {
+  const t = todayIso();
+  const upcoming = events.filter(e => eventEndIso(e) >= t).sort((a, b) => eventStart(a) - eventStart(b));
+  const past = events.filter(e => eventEndIso(e) < t).sort((a, b) => eventStart(b) - eventStart(a));
+  $('subtitle').textContent = upcoming.length ? upcoming.length + ' tulemas' : 'Tulevasi üritusi pole';
+  const m = $('main'); m.innerHTML = '';
+  // month grid
+  const cal = document.createElement('div'); cal.className = 'cal';
+  const y = calMonth.getFullYear(), mo = calMonth.getMonth();
+  const first = new Date(y, mo, 1), startDow = (first.getDay() + 6) % 7, days = new Date(y, mo + 1, 0).getDate();
+  const has = new Set(); for (const e of events) { let d = parseIso(e.date); const end = parseIso(eventEndIso(e)); while (d <= end) { has.add(iso(d)); d.setDate(d.getDate() + 1); } }
+  let g = '<div class="grid">' + ['E', 'T', 'K', 'N', 'R', 'L', 'P'].map(d => `<div class="dow">${d}</div>`).join('');
+  const startDate = new Date(y, mo, 1 - startDow); const cells = Math.ceil((startDow + days) / 7) * 7;
+  for (let i = 0; i < cells; i++) {
+    const d = new Date(startDate); d.setDate(startDate.getDate() + i); const s = iso(d);
+    const cls = [d.getMonth() !== mo ? 'out' : '', s === t ? 'today' : '', s === calSel ? 'sel' : ''].join(' ');
+    g += `<button class="${cls}" data-d="${s}" aria-label="${fmtDay(s, { day: 'numeric', month: 'long' })}">${d.getDate()}<i class="${has.has(s) ? '' : 'none'}"></i></button>`;
+  }
+  g += '</div>';
+  cal.innerHTML = `<div class="calhead"><button id="cPrev" aria-label="Eelmine kuu">‹</button><b>${first.toLocaleDateString('et-EE', { month: 'long', year: 'numeric' })}</b><button id="cNext" aria-label="Järgmine kuu">›</button></div>` + g;
+  m.append(cal);
+  cal.querySelector('#cPrev').onclick = () => { calMonth = new Date(y, mo - 1, 1); render(); };
+  cal.querySelector('#cNext').onclick = () => { calMonth = new Date(y, mo + 1, 1); render(); };
+  cal.querySelectorAll('.grid button').forEach(b => b.onclick = () => { calSel = calSel === b.dataset.d ? null : b.dataset.d; render(); });
+
+  if (calSel) {
+    const list = events.filter(e => e.date <= calSel && eventEndIso(e) >= calSel).sort((a, b) => eventStart(a) - eventStart(b));
+    const h = document.createElement('div'); h.className = 'dayhead'; h.textContent = fmtDay(calSel, { weekday: 'long', day: 'numeric', month: 'long' }); m.append(h);
+    const ul = document.createElement('ul');
+    if (!list.length) { const li = document.createElement('li'); li.className = 'empty'; li.innerHTML = '<b>Sel päeval midagi pole</b>'; const add = document.createElement('button'); add.className = 'btn'; add.style.marginTop = '10px'; add.textContent = 'Lisa üritus sellele päevale'; add.onclick = () => eventSheet(null, calSel); li.append(add); ul.append(li); }
+    for (const e of list) ul.append(eventRow(e)); m.append(ul); return;
+  }
+  const h = document.createElement('div'); h.className = 'dayhead'; h.textContent = 'Tulemas'; m.append(h);
+  const ul = document.createElement('ul');
+  if (!upcoming.length) ul.innerHTML = '<li class="empty"><b>Tulevasi üritusi pole</b>Lisa üritus nupuga +. Saad valida, millal telefon sulle sellest meelde tuletab.</li>';
+  for (const e of upcoming) ul.append(eventRow(e)); m.append(ul);
+  if (past.length) {
+    const d = document.createElement('details'); d.className = 'done'; d.innerHTML = `<summary>Möödunud (${past.length})</summary>`;
+    const ud = document.createElement('ul'); for (const e of past.slice(0, 30)) ud.append(eventRow(e, true)); d.append(ud); m.append(d);
+  }
+}
+function eventRow(e, isPast) {
+  const li = document.createElement('li'); const b = document.createElement('button'); b.className = 'ev' + (isPast ? ' past' : ''); b.onclick = () => eventSheet(e);
+  const d = parseIso(e.date);
+  const when = [e.time ? e.time : 'Terve päev', e.endDate && e.endDate > e.date ? '– ' + fmtDay(e.endDate, { day: 'numeric', month: 'short' }) : ''].filter(Boolean).join(' ');
+  const chips = (e.remind || []).slice().sort((a, b) => b - a).map(r => `<span class="chip">🔔 ${esc(remLabel(r))}</span>`).join('');
+  b.innerHTML = `<div class="evdate"><b>${d.getDate()}</b><span>${d.toLocaleDateString('et-EE', { month: 'short' }).replace('.', '')}</span></div>
+    <div class="evbody"><span class="evtitle">${esc(e.title)}</span><span class="meta"><span>${esc(fmtDay(e.date, { weekday: 'long' }))} · ${esc(when)}</span>${e.place ? `<span>📍 ${esc(e.place)}</span>` : ''}</span>${chips ? `<span class="chips">${chips}</span>` : ''}</div>`;
+  li.append(b); return li;
+}
+
+function renderSettings() {
+  $('subtitle').textContent = '';
+  const m = $('main');
+  const notif = !VAPID_KEY ? '<p class="note">Teated pole veel seadistatud.</p>'
+    : !('Notification' in window) || !('serviceWorker' in navigator) ? '<p class="note">See brauser ei toeta teateid. iPhone\'is lisa äpp enne avakuvale (Jaga → Lisa avakuvale) ja ava see sealt.</p>'
+    : Notification.permission === 'granted' ? '<p class="note">Teated on sees selles telefonis. ✅</p><button class="btn sec" id="nOn">Uuenda teadete seadistust</button><button class="btn sec" id="nTest">Saada mulle proovi-teade</button>'
+    : Notification.permission === 'denied' ? '<p class="note">Teated on telefoni seadetes keelatud. Luba need telefoni Seaded → Teavitused → Kodu all.</p>'
+    : '<p class="note">Lülita sisse, et telefon tuletaks üritusi meelde ka siis, kui äpp on kinni.</p><button class="btn" id="nOn">Lülita teated sisse</button>';
+  m.innerHTML = `
+  <div class="card"><h3>Sina</h3><div class="mem"><span>${esc(me.nameOf())}<br><small>${esc(me.email)}</small></span><button class="ghost" id="sName">Muuda nime</button></div></div>
+  <div class="card"><h3>Meeldetuletused</h3>${notif}</div>
+  <div class="card"><h3>Pereliikmed</h3><p class="note">Nendel e-postidel on ligipääs. Uus liige loob äpis konto sama e-postiga.</p>
+    <ul>${members.map(x => `<li class="mem"><span>${esc(x.name || x.email)}<br><small>${esc(x.email)}</small></span><button class="ghost" data-rm="${esc(x.email)}">Eemalda</button></li>`).join('') || '<li class="note">Nimekiri on tühi.</li>'}</ul>
+    <div style="display:flex;gap:8px"><input class="inp" id="mEmail" type="email" placeholder="e-post" style="flex:1;min-width:0"><button class="btn" id="mAdd" style="width:auto;padding:0 18px">Lisa</button></div></div>
+  <button class="btn sec" id="sOut">Logi välja</button>
+  <p class="ver">Kodu · versioon ${APP_VERSION}</p>`;
+  $('sOut').onclick = () => signOut(auth);
+  $('sName').onclick = async () => { const n = window.prompt ? prompt('Sinu nimi', me.nameOf()) : null; if (n && n.trim()) { await updateProfile(me, { displayName: n.trim() }); render(); toast('Nimi muudetud'); } };
+  $('mAdd').onclick = () => { const e = $('mEmail').value.trim().toLowerCase(); if (!/^\S+@\S+\.\S+$/.test(e)) return toast('Kirjuta korrektne e-post'); guard(setDoc(doc(db, 'members', e), { addedBy: me.nameOf(), addedAt: serverTimestamp() }), 'Lisatud ' + e); $('mEmail').value = ''; };
+  m.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { if (b.dataset.armed) guard(deleteDoc(doc(db, 'members', b.dataset.rm)), 'Eemaldatud'); else { b.dataset.armed = 1; b.textContent = 'Kindel?'; } });
+  if ($('nOn')) $('nOn').onclick = enablePush;
+  if ($('nTest')) $('nTest').onclick = () => guard(addDoc(collection(db, 'testPush'), { uid: me.uid, at: serverTimestamp() }), 'Proovi-teade tuleb mõne minuti jooksul');
+}
+
+/* ---------- sheets ---------- */
+function sheet(html) {
+  const s = document.createElement('div'); s.className = 'scrim'; s.innerHTML = `<div class="sheet" role="dialog" aria-modal="true">${html}</div>`;
+  s.onclick = e => { if (e.target === s) close(); };
+  const close = () => s.remove(); document.body.append(s); s.querySelector('.x')?.addEventListener('click', close);
+  return [s, close];
+}
+function segBind(root, sel, multi) {
+  root.querySelectorAll(sel + ' button').forEach(b => b.onclick = () => {
+    if (multi) b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true');
+    else root.querySelectorAll(sel + ' button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  });
+}
+function taskSheet(t, list) {
+  const cur = t?.list || list;
+  const [s, close] = sheet(`
+    <div class="shead"><h2>${t ? 'Muuda' : 'Uus asi'}</h2><button class="x" aria-label="Sulge">×</button></div>
+    <label class="f">Mida on vaja teha?<input class="inp" id="tText" maxlength="200" value="${esc(t?.text || '')}"></label>
+    <div class="seg u" id="tList"><button data-v="urgent" aria-pressed="${cur === 'urgent'}">⚡ Kiire</button><button data-v="soon" aria-pressed="${cur === 'soon'}">🕒 Lähiajal</button></div>
+    <label class="f">Tähtaeg (pole kohustuslik)<input class="inp" id="tDue" type="date" value="${esc(t?.due || '')}"></label>
+    <label class="f">Märkus<textarea class="inp" id="tNote" maxlength="1000">${esc(t?.note || '')}</textarea></label>
+    <button class="btn" id="tSave">${t ? 'Salvesta' : 'Lisa'}</button>
+    ${t ? `<button class="btn del" id="tDel">Kustuta</button><p class="note">Lisas ${esc(t.createdBy?.name || '')} ${ago(t.createdAt)}</p>` : ''}`);
+  segBind(s, '#tList');
+  if (!t) setTimeout(() => s.querySelector('#tText').focus(), 50);
+  s.querySelector('#tSave').onclick = () => {
+    const text = s.querySelector('#tText').value.trim(); if (!text) return s.querySelector('#tText').focus();
+    const data = { text, list: s.querySelector('#tList [aria-pressed="true"]').dataset.v, due: s.querySelector('#tDue').value || null, note: s.querySelector('#tNote').value.trim() };
+    if (t) guard(updateDoc(doc(db, 'tasks', t.id), data));
+    else { guard(addDoc(collection(db, 'tasks'), { ...data, done: false, doneAt: null, doneBy: null, createdAt: serverTimestamp(), createdBy: by() })); if (data.list !== tab) toast('Lisatud: ' + TITLES[data.list]); }
+    close();
+  };
+  if (t) { let armed = false; s.querySelector('#tDel').onclick = e => { if (!armed) { armed = true; e.target.textContent = 'Vajuta uuesti kustutamiseks'; return; } guard(deleteDoc(doc(db, 'tasks', t.id)), 'Kustutatud'); close(); }; }
+}
+function eventSheet(e, day) {
+  const rem = e?.remind || [1440, 60];
+  const [s, close] = sheet(`
+    <div class="shead"><h2>${e ? 'Üritus' : 'Uus üritus'}</h2><button class="x" aria-label="Sulge">×</button></div>
+    <label class="f">Nimi<input class="inp" id="eTitle" maxlength="150" value="${esc(e?.title || '')}" placeholder="nt Mari sünnipäev"></label>
+    <div class="row2"><label class="f">Kuupäev<input class="inp" id="eDate" type="date" value="${esc(e?.date || day || todayIso())}"></label>
+    <label class="f">Kellaaeg<input class="inp" id="eTime" type="time" value="${esc(e?.time || '')}"></label></div>
+    <label class="f">Lõpeb (mitmepäevane, pole kohustuslik)<input class="inp" id="eEnd" type="date" value="${esc(e?.endDate || '')}"></label>
+    <label class="f">Koht<input class="inp" id="ePlace" maxlength="150" value="${esc(e?.place || '')}"></label>
+    <div class="f" style="display:grid;gap:6px;font-size:13px;font-weight:600;color:var(--muted)">Tuleta meelde<div class="seg" id="eRem">${REMINDERS.map(([v, l]) => `<button data-v="${v}" aria-pressed="${rem.includes(v)}">${l}</button>`).join('')}</div></div>
+    <p class="note" id="eRemNote" style="margin:0">Ilma kellaajata ürituse puhul arvestan algusajaks 09:00.</p>
+    <label class="f">Märkus<textarea class="inp" id="eNote" maxlength="1000">${esc(e?.note || '')}</textarea></label>
+    <button class="btn" id="eSave">${e ? 'Salvesta' : 'Lisa üritus'}</button>
+    ${e ? `<button class="btn sec" id="eIcs">Lisa telefoni kalendrisse</button><button class="btn del" id="eDel">Kustuta</button><p class="note">Lisas ${esc(e.createdBy?.name || '')} ${ago(e.createdAt)}</p>` : ''}`);
+  segBind(s, '#eRem', true);
+  if (!e) setTimeout(() => s.querySelector('#eTitle').focus(), 50);
+  s.querySelector('#eSave').onclick = () => {
+    const title = s.querySelector('#eTitle').value.trim(), date = s.querySelector('#eDate').value; if (!title) return s.querySelector('#eTitle').focus(); if (!date) return toast('Vali kuupäev');
+    const data = { title, date, time: s.querySelector('#eTime').value || null, endDate: s.querySelector('#eEnd').value || null, place: s.querySelector('#ePlace').value.trim(), note: s.querySelector('#eNote').value.trim(),
+      remind: [...s.querySelectorAll('#eRem [aria-pressed="true"]')].map(b => +b.dataset.v) };
+    data.startAt = eventStart(data);
+    // Reminders whose time moved get re-sent; ones already sent for the same start time stay sent.
+    const sent = e && e.startAt === data.startAt ? (e.notified || []).filter(x => data.remind.includes(x)) : [];
+    data.notified = sent;
+    if (e) guard(updateDoc(doc(db, 'events', e.id), data)); else guard(addDoc(collection(db, 'events'), { ...data, createdAt: serverTimestamp(), createdBy: by() }));
+    calMonth = startOfMonth(parseIso(date)); close();
+  };
+  if (e) {
+    let armed = false; s.querySelector('#eDel').onclick = ev => { if (!armed) { armed = true; ev.target.textContent = 'Vajuta uuesti kustutamiseks'; return; } guard(deleteDoc(doc(db, 'events', e.id)), 'Kustutatud'); close(); };
+    s.querySelector('#eIcs').onclick = () => downloadIcs(e);
+  }
+}
+function downloadIcs(e) {
+  const d = e.date.replace(/-/g, ''); const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  const icsEsc = v => String(v || '').replace(/\\/g, '\\\\').replace(/[,;]/g, m => '\\' + m).replace(/\n/g, '\\n');
+  let start, end;
+  if (e.time) { const t = e.time.replace(':', '') + '00'; start = `DTSTART;TZID=Europe/Tallinn:${d}T${t}`; const ed = new Date(eventStart(e) + 3600e3); end = `DTEND;TZID=Europe/Tallinn:${iso(ed).replace(/-/g, '')}T${pad(ed.getHours())}${pad(ed.getMinutes())}00`; }
+  else { start = `DTSTART;VALUE=DATE:${d}`; const ed = parseIso(eventEndIso(e)); ed.setDate(ed.getDate() + 1); end = `DTEND;VALUE=DATE:${iso(ed).replace(/-/g, '')}`; }
+  const alarms = (e.remind || []).map(m => `BEGIN:VALARM\r\nACTION:DISPLAY\r\nDESCRIPTION:${icsEsc(e.title)}\r\nTRIGGER:-PT${m}M\r\nEND:VALARM`).join('\r\n');
+  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Kodu//ET', 'BEGIN:VEVENT', `UID:${e.id}@kodu`, `DTSTAMP:${stamp}`, start, end, `SUMMARY:${icsEsc(e.title)}`, e.place ? `LOCATION:${icsEsc(e.place)}` : '', e.note ? `DESCRIPTION:${icsEsc(e.note)}` : '', alarms, 'END:VEVENT', 'END:VCALENDAR'].filter(Boolean).join('\r\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' })); a.download = (e.title || 'yritus').replace(/[^\wäöüõ -]/gi, '') + '.ics';
+  document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+}
+
+/* ---------- push ---------- */
+async function enablePush() {
+  try {
+    const perm = await Notification.requestPermission(); if (perm !== 'granted') { render(); return; }
+    const reg = await navigator.serviceWorker.ready;
+    const { getMessaging, getToken, isSupported } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js');
+    if (!(await isSupported())) return toast('See brauser ei toeta teateid.');
+    const token = await getToken(getMessaging(app), { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+    await setDoc(doc(db, 'tokens', token), { uid: me.uid, name: me.nameOf(), ua: navigator.userAgent.slice(0, 120), updatedAt: serverTimestamp() });
+    toast('Teated on sees'); render();
+  } catch (e) { toast('Teadete sisselülitamine ebaõnnestus: ' + (e.code || e.message)); }
+}
+
+/* ---------- misc ---------- */
+let toastT; function toast(msg) { document.querySelector('.toast')?.remove(); clearTimeout(toastT); const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.append(t); toastT = setTimeout(() => t.remove(), 2600); }
+setInterval(() => { if (!document.hidden) render(); }, 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
+
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController && !document.querySelector('.scrim')) location.reload(); });
+  navigator.serviceWorker.register('sw.js').then(r => r.update()).catch(() => {});
+}
+</script>
+</body>
+</html>
