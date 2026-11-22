@@ -1,5 +1,5 @@
 // Offline shell + web push. Only same-origin files and the Firebase SDK are cached; Firestore traffic is never touched.
-const CACHE = 'kodu-v1';
+const CACHE = 'tasks-v1';
 const FILES = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
@@ -34,9 +34,9 @@ self.addEventListener('fetch', e => {
 // Reminder pushes are sent as data-only FCM messages: {title, body, tag}.
 self.addEventListener('push', e => {
   let p = {};
-  try { p = e.data ? e.data.json() : {}; } catch (_) { p = { data: { title: 'Kodu', body: e.data && e.data.text() } }; }
+  try { p = e.data ? e.data.json() : {}; } catch (_) { p = { data: { title: 'Tasks', body: e.data && e.data.text() } }; }
   const d = p.data || p.notification || p;
-  e.waitUntil(self.registration.showNotification(d.title || 'Kodu', {
+  e.waitUntil(self.registration.showNotification(d.title || 'Tasks', {
     body: d.body || '', tag: d.tag || undefined, icon: 'icon-192.png', badge: 'icon-192.png', data: { url: './' }
   }));
 });

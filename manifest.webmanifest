@@ -1,6 +1,6 @@
 {
-  "name": "Kodu",
-  "short_name": "Kodu",
+  "name": "Tasks",
+  "short_name": "Tasks",
   "description": "Ühised kodused toimetused ja üritused",
   "lang": "et",
   "start_url": "./",

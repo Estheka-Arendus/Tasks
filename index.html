@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Kodu</title>
+<title>Tasks</title>
 <meta name="theme-color" content="#f3f4f1" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#14171a" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Kodu">
+<meta name="apple-mobile-web-app-title" content="Tasks">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -127,7 +127,7 @@ textarea.inp{min-height:70px;resize:vertical}
 <body>
 
 <div id="loginView" class="login" hidden>
-  <h1>Kodu</h1>
+  <h1>Tasks</h1>
   <p class="note" id="loginIntro">Logi sisse, et näha ühist nimekirja.</p>
   <label class="f" id="nameWrap" hidden>Sinu nimi<input class="inp" id="lName" autocomplete="given-name" placeholder="nt Tõnis"></label>
   <label class="f">E-post<input class="inp" id="lEmail" type="email" autocomplete="email" inputmode="email"></label>
@@ -381,7 +381,7 @@ function renderSettings() {
     <ul>${members.map(x => `<li class="mem"><span>${esc(x.name || x.email)}<br><small>${esc(x.email)}</small></span><button class="ghost" data-rm="${esc(x.email)}">Eemalda</button></li>`).join('') || '<li class="note">Nimekiri on tühi.</li>'}</ul>
     <div style="display:flex;gap:8px"><input class="inp" id="mEmail" type="email" placeholder="e-post" style="flex:1;min-width:0"><button class="btn" id="mAdd" style="width:auto;padding:0 18px">Lisa</button></div></div>
   <button class="btn sec" id="sOut">Logi välja</button>
-  <p class="ver">Kodu · versioon ${APP_VERSION}</p>`;
+  <p class="ver">Tasks · versioon ${APP_VERSION}</p>`;
   $('sOut').onclick = () => signOut(auth);
   $('sName').onclick = async () => { const n = window.prompt ? prompt('Sinu nimi', me.nameOf()) : null; if (n && n.trim()) { await updateProfile(me, { displayName: n.trim() }); render(); toast('Nimi muudetud'); } };
   $('mAdd').onclick = () => { const e = $('mEmail').value.trim().toLowerCase(); if (!/^\S+@\S+\.\S+$/.test(e)) return toast('Kirjuta korrektne e-post'); guard(setDoc(doc(db, 'members', e), { addedBy: me.nameOf(), addedAt: serverTimestamp() }), 'Lisatud ' + e); $('mEmail').value = ''; };

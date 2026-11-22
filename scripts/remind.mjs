@@ -47,6 +47,6 @@ for (const doc of evs.docs) {
 }
 
 const tests = await db.collection('testPush').get();
-for (const t of tests.docs) { sent += await send('Kodu', 'Proovi-teade töötab ✅', 'test', t.get('uid')); await t.ref.delete(); }
+for (const t of tests.docs) { sent += await send('Tasks', 'Proovi-teade töötab ✅', 'test', t.get('uid')); await t.ref.delete(); }
 
 console.log(`tokens=${tokens.length} events=${evs.size} pushes_sent=${sent}`);
