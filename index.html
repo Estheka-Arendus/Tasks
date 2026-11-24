@@ -164,7 +164,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc, setDoc, getDoc, writeBatch, query, orderBy, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
-const APP_VERSION = 1;
+const APP_VERSION = 2;
 const firebaseConfig = {
   apiKey: "AIzaSyCYOaPpltoeFCP6HYsTbCc_NBHJXVFaP08",
   authDomain: "tasks-f2af3.firebaseapp.com",
@@ -174,7 +174,7 @@ const firebaseConfig = {
   appId: "1:523672937359:web:f5c917de6a515c7fa3a1fa"
 };
 // Web push key from Firebase console → Project settings → Cloud Messaging → Web Push certificates. Empty = notifications not set up yet.
-const VAPID_KEY = "";
+const VAPID_KEY = "BEkEgenQMknnfUnjwyck9lb7L_X2kMGAUE7LvtqQgomnVreobHBLMS5lFGvoojKwlo7fXRXRRzNRUmYU3wyveEQ";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
